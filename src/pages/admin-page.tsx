@@ -4,7 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { routes } from '../app/constants/constants'
 import { useAppSelector } from '../app/hooks/hooks'
 import CardList from '../components/card-list'
-import UserCardList from '../components/user-card-list'
+import { UserCard } from '../components/user-card/user-card'
 import { useGetUserListQuery } from '../store/api/users-api'
 import { selectLogin } from '../store/selectors'
 
@@ -27,7 +27,7 @@ export default function AdminPage() {
         alignItems: 'center',
       }}
     >
-      <CardList Component={UserCardList} list={userList} isLoading={isFetching} isError={isError} />
+      <CardList Component={UserCard} list={userList} isLoading={isFetching} isError={isError} />
     </Container>
   )
 }

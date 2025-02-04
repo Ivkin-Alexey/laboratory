@@ -3,25 +3,38 @@ import { Box, Container } from '@mui/material'
 import { SEARCH_SUGGEST_NUMBER } from '../app/constants/constants'
 import { useAppSelector } from '../app/hooks/hooks'
 import CardList from '../components/card-list'
-import EquipmentCardList from '../components/equipment-card-list'
+import { EquipmentCard } from '../components/equipment-card/equipment-card'
 import { Search } from '../components/search/search'
 import { useLazyFetchEquipmentsBySearchTermQuery } from '../store/api/equipment/equipments-api'
 import { selectFavoriteEquipmentsFromLS } from '../store/selectors'
 
 export default function SearchPage() {
-  const [fetchEquipments, { isFetching, isLoading, isError, data: equipmentList }] =
-    useLazyFetchEquipmentsBySearchTermQuery()
+  const [
+    fetchEquipments,
+    {
+      isFetching,
+      isLoading,
+      isError,
+      data,
+    },
+  ] = useLazyFetchEquipmentsBySearchTermQuery()
 
-  const suggestList = equipmentList?.slice(0, SEARCH_SUGGEST_NUMBER)
+  const suggestList = data?.results?.slice(0, SEARCH_SUGGEST_NUMBER)
 
   const equipmentIds = useAppSelector(selectFavoriteEquipmentsFromLS)
 
-  const transformedList = equipmentList ? equipmentList.map(el => {
+  const transformedList = data?.results
+    ? data.results.map(el => {
         return {
           ...el,
-          isFavorite: equipmentIds.includes(el.id)
+          isFavorite: equipmentIds.includes(el.id),
         }
-      }) : []
+      })
+    : []
+  
+    useEffect(() => {
+      setPage(1); // Сбрасываем страницу при изменении параметров поиска
+    }, [searchTerm, filters]);
 
   return (
     <Container sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -40,7 +53,7 @@ export default function SearchPage() {
         }}
       >
         <CardList
-          Component={EquipmentCardList}
+          Component={EquipmentCard}
           list={transformedList}
           isLoading={isFetching || isLoading}
           isError={isError}

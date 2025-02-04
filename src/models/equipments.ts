@@ -19,6 +19,13 @@ export interface IEquipmentItem {
   inventoryNumber: string
 }
 
+export interface IEquipmentListResult {
+  results: IEquipmentItem[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
 export type TEquipmentFilters = IEquipmentFilter[]
 
 export interface IEquipmentFilter {
@@ -35,14 +42,16 @@ export interface ISearchArg {
   login?: TLogin
   searchTerm: string
   filters?: IEquipmentFilterState
+  page?: number
+  pageSize: number
 }
 
 export interface IQueriesObject {
-  [key: string]: string[] | string
+  [key: string]: string[] | string | number
 }
 
 export type TEquipmentCard = IEquipmentItem & {
-  isCardMode: boolean
+  isCardMode?: boolean
 }
 
 export interface IAvailableEquipments {

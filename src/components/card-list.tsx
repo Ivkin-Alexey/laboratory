@@ -1,23 +1,23 @@
 import type React from 'react'
 
-import { Typography } from '@mui/material'
+import { Stack, Typography } from '@mui/material'
 
 import Circular from './circular'
-import type { IEquipmentItem } from '../models/equipments'
+import type { IEquipmentItem, TEquipmentCard } from '../models/equipments'
 import type { IUserCard } from '../models/users'
 
 interface ICardList {
   isLoading: boolean
   isError: boolean
   Component?: React.ElementType
-  list?: IEquipmentItem[] | IUserCard[]
+  list?: TEquipmentCard[] | IUserCard[]
 }
 
 export default function CardList(props: ICardList) {
   const { isError, isLoading, list, Component } = props
 
   if (isLoading || !Component) {
-    return <Circular/>
+    return <Circular />
   }
 
   if (isError) {
@@ -29,7 +29,6 @@ export default function CardList(props: ICardList) {
   }
 
   if (list && list?.length === 0) {
-
     return (
       <Typography gutterBottom variant="body1" component="div" marginTop="40px">
         Список пуст
@@ -37,7 +36,22 @@ export default function CardList(props: ICardList) {
     )
   }
 
-  if (Array.isArray(list)) {
-    return <Component list={list} />
+  if (!list) {
+    return null
   }
+
+  return (
+    <Stack
+      direction="row"
+      spacing={4}
+      useFlexGap
+      flexWrap="wrap"
+      justifyContent="center"
+      marginBottom="40px"
+    >
+      {list.map((el, i) => {
+        return <Component key={i} {...el} />
+      })}
+    </Stack>
+  )
 }

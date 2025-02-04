@@ -3,6 +3,7 @@ import { encodeQueryParams } from '../../../app/utils/utils'
 import type {
   equipmentId,
   IEquipmentItem,
+  IEquipmentListResult,
   ISearchArg,
   TEquipmentFilters,
 } from '../../../models/equipments'
@@ -34,16 +35,24 @@ export const equipmentsApi = api.injectEndpoints({
           isFavorite: true
         })),
     }),
-    fetchEquipmentsBySearchTerm: builder.query<IEquipmentItem[], ISearchArg>({
+    fetchEquipmentsBySearchTerm: builder.query<IEquipmentListResult, ISearchArg>({
       query: data => {
-        const { login, filters = {}, searchTerm} = data
+        const { login, filters = {}, searchTerm, page, pageSize} = data
 
         const params = {
           ...(login && { login }),
           ...filters,
           ...(searchTerm && { term: searchTerm }),
+          ...(page && { page }),
+          ...(pageSize && {pageSize})
         }
         return apiRoutes.get.equipments.search + encodeQueryParams(params)
+      },
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        return { endpointName, queryArgs };
+      },
+      merge: (currentCache, newItems) => {
+        currentCache.results.push(...newItems.results);
       },
       providesTags: ['EquipmentList'],
     }),

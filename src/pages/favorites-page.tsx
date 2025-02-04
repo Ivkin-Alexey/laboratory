@@ -4,7 +4,7 @@ import { Container } from '@mui/material'
 
 import { useAppSelector } from '../app/hooks/hooks'
 import CardList from '../components/card-list'
-import EquipmentCardList from '../components/equipment-card-list'
+import { EquipmentCard } from '../components/equipment-card/equipment-card'
 import {
   useFetchEquipmentByIDQuery,
   useFetchEquipmentByIDsQuery,
@@ -20,12 +20,8 @@ export default function FavoritesPage() {
 
   const equipmentIds = useAppSelector(selectFavoriteEquipmentsFromLS)
 
-  const [fetch, {
-    isFetching,
-    isLoading,
-    isError,
-    data: equipmentList,
-  }] = useLazyFetchEquipmentByIDsQuery()
+  const [fetch, { isFetching, isLoading, isError, data: equipmentList }] =
+    useLazyFetchEquipmentByIDsQuery()
 
   useEffect(() => {
     if (Array.isArray(equipmentIds) && equipmentIds.length > 0) {
@@ -42,7 +38,7 @@ export default function FavoritesPage() {
   return (
     <Container sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <CardList
-        Component={EquipmentCardList}
+        Component={EquipmentCard}
         list={equipmentIds.length > 0 ? equipmentList : []}
         isLoading={isLoading}
         isError={isError}
