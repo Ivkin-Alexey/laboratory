@@ -6,12 +6,14 @@ import { useAppSelector } from '../../app/hooks/hooks'
 import type { IEquipmentListResult, ISearchArg, TEquipmentCard } from '../../models/equipments'
 import type { IUserCard } from '../../models/users'
 import { useFetchEquipmentsBySearchTermQuery } from '../../store/api/equipment/equipments-api'
-import { selectFavoriteEquipmentsFromLS } from '../../store/selectors'
+import { selectFavoriteEquipmentsFromLS, selectLogin } from '../../store/selectors'
 import Circular from '../circular'
+import { useThrottle } from '../../app/hooks/useThrottle'
+import { DEFAULT_SEARCH_TERM } from '../../app/constants/constants'
 
 interface IProps {
   // fetch: (arg: ISearchArg) => Promise<IEquipmentListResult>
-  fetchArgs: ISearchArg
+  // fetchArgs: ISearchArg
   // isLoading: boolean
   // isError: boolean
   Component: React.ElementType
@@ -24,21 +26,29 @@ export default function InfinityCardList({
   // isLoading,
   Component,
   // isError,
-  fetchArgs,
+  // fetchArgs,
 }: IProps) {
   const [page, setPage] = useState(1)
-  const scrollPosition = useRef(0)
+  const isMounted = useRef(false);
+  const login = useAppSelector(selectLogin)
+  const arg = { login, searchTerm: DEFAULT_SEARCH_TERM, pageSize: 10 }
 
   const {
     isFetching,
     isError,
     isLoading,
     data: equipmentData,
-  } = useFetchEquipmentsBySearchTermQuery({ ...fetchArgs, page })
+  } = useFetchEquipmentsBySearchTermQuery({ ...arg, page })
 
+  const LIST_MAX_SIZE = 40
+  const THRESHOLD = 200
   const equipmentIds = useAppSelector(selectFavoriteEquipmentsFromLS)
+  const [list, setList] = useState<TEquipmentCard[]>([])
+  const listRef = useRef<HTMLDivElement>(null)
+  const prevScrollHeight = useRef<number>(0)
+  const isPrepending = useRef(false)
 
-  const list = equipmentData?.results
+  const newItems = equipmentData?.results
     ? equipmentData.results.map(el => {
         return {
           ...el,
@@ -47,46 +57,105 @@ export default function InfinityCardList({
       })
     : []
 
-  const handleScroll = useCallback(() => {
-    console.log(
-      'window.innerHeight',
-      window.innerHeight,
-      'document.documentElement.scrollTop',
-      document.documentElement.scrollTop,
-      'document.documentElement.offsetHeight',
-      document.documentElement.offsetHeight,
-    )
-    if (
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight
-    ) {
-      console.log("scroll")
-      console.log(equipmentData?.results, fetchArgs.pageSize, page)
-      if (equipmentData?.results.length === fetchArgs.pageSize * page) {
+  const handleScroll = useThrottle(() => {
+    handleScrollPosition()
+  }, 200);
 
-        setPage(prev => prev + 1)
-      }
+  function handleScrollPosition() {
+    if(isFetching || isLoading || !equipmentData) return
 
+    const scrollTop = document.documentElement.scrollTop;
+    const clientHeight = document.documentElement.clientHeight;
+    const scrollHeight = document.documentElement.scrollHeight;
+
+    const isBelowMiddle = scrollTop > scrollHeight / 2
+    const isNearBottom = scrollHeight - (scrollTop + clientHeight) < THRESHOLD
+    const isNearTop = scrollTop < THRESHOLD
+
+    const {page, pageSize, totalCount, results} = equipmentData
+    if(isNearBottom && (page * pageSize < totalCount)) {
+      setPage(prev => prev + 1)
+    } else if (isNearTop && (page > 0)) {
+      // setPage(prev => prev - 1)
     }
-  }, [equipmentData?.results])
-
-  // useLayoutEffect(() => {
-  //   if (scrollPosition.current) {
-  //     document.documentElement.scrollTop = scrollPosition.current
-  //   }
-  // }, [list])
+  }
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    if(page === 1) return
+    handleScrollPosition()
+  }, [equipmentData])
 
   useEffect(() => {
-    console.log(page)
+    console.log("Длина списка", list.length)
+    isMounted.current = true;
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      isMounted.current = false;
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [list]);
+
+  useEffect(() => {
+    console.log("page", page)
   }, [page])
+  
+    useEffect(() => {
+      if (!equipmentData) return
+      const currentList = listRef.current
+  
+      // 1. Сохраняем ключевые параметры скролла ДО обновления DOM
+      if (currentList) {
+        prevScrollHeight.current = currentList.scrollHeight
+        // isPrepending.current = newItems.length + list.length > LIST_MAX_SIZE
+      }
+  
+      const overage = newItems.length + list.length - LIST_MAX_SIZE
+      setList(prev => 
+        overage > 0 
+          ? [...prev.slice(overage), ...newItems] 
+          : [...prev, ...newItems]
+      )
+    }, [equipmentData])
+  
+    useLayoutEffect(() => {
+      const listElement = listRef.current
+      if (!listElement || !isPrepending.current) return
+  
+      const diff = listElement.scrollHeight - prevScrollHeight.current
+      if (diff !== 0) {
+        window.scrollTo({
+          top: window.scrollY + diff,
+          behavior: 'auto'
+        })
+      }
+  
+      isPrepending.current = false
+    }, [list])
 
+  // useEffect(() => {
+  //   if (!equipmentData) return
+  
+  //   const scrollTop = document.documentElement.scrollTop
+  //   const scrollHeight = document.documentElement.scrollHeight
+  
+  //   const overage = newList.length + list.length - LIST_MAX_SIZE
+  //   if (overage > 0) {
+  //     setList(prev => [...prev.slice(overage), ...newList])
+  //   } else {
+  //     setList(prev => [...prev, ...newList])
+  //   }
 
-  if (isLoading) {
+  //   requestAnimationFrame(() => {
+  //     const newScrollHeight = document.documentElement.scrollHeight
+  //     document.documentElement.scrollTop = scrollTop + (newScrollHeight - scrollHeight)
+  //   })
+  // }, [equipmentData])
+
+    useEffect(() => {
+      console.log(equipmentData)
+      }, [equipmentData])
+
+  if (isLoading || isFetching) {
     return <Circular />
   }
 
@@ -108,6 +177,7 @@ export default function InfinityCardList({
 
   return (
     <Stack
+      ref={listRef}
       direction="row"
       sx={{ flexWrap: 'wrap', justifyContent: 'center' }}
       spacing={4}

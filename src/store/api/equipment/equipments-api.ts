@@ -48,12 +48,15 @@ export const equipmentsApi = api.injectEndpoints({
         }
         return apiRoutes.get.equipments.search + encodeQueryParams(params)
       },
-      serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return { endpointName, queryArgs };
-      },
-      merge: (currentCache, newItems) => {
-        currentCache.results.push(...newItems.results);
-      },
+      // serializeQueryArgs: ({ endpointName }) => {
+      //   return endpointName;
+      // },
+      // merge: (currentCache, newItems) => {
+      //   currentCache.results.push(...newItems.results);
+      // },
+      // forceRefetch: ({ currentArg, previousArg }) => {
+      //   return currentArg?.page !== previousArg?.page;
+      // },
       providesTags: ['EquipmentList'],
     }),
     fetchFavoriteEquipments: builder.query<IEquipmentItem[], string>({

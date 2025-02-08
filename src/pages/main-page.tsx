@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Container } from '@mui/material'
 
@@ -14,7 +14,7 @@ import { useLazyCheckTokenQuery } from '../store/api/users-api'
 import { selectFavoriteEquipmentsFromLS, selectIsAuth, selectLogin } from '../store/selectors'
 
 export default function MainPage() {
-  const login = useAppSelector(selectLogin)
+
 
   // const isAuth = useAppSelector(selectIsAuth)
   // const [checkToken, { data, isSuccess }] = useLazyCheckTokenQuery()
@@ -26,11 +26,24 @@ export default function MainPage() {
   // }, [])
 
 
-  const arg = { login, searchTerm: DEFAULT_SEARCH_TERM, pageSize: 20 }
+
+  useEffect(() => {
+    const navigationEntries = performance.getEntriesByType("navigation");
+  
+    if (navigationEntries.length > 0) {
+      const navigationType = navigationEntries[0].type;
+  
+      if (navigationType === "reload") {
+        console.log("Страница была перезагружена");
+      } else if (navigationType === "navigate") {
+        console.log("Страница загружена впервые");
+      }
+    }
+  }, []);
 
   return (
     <>
-      <Carousel />
+      {/* <Carousel /> */}
       <Container
         sx={{
           display: 'flex',
@@ -40,7 +53,6 @@ export default function MainPage() {
       >
         <Search />
         <InfinityCardList
-          fetchArgs={arg}
           Component={EquipmentCard}
         />
       </Container>

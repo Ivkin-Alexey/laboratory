@@ -7,6 +7,7 @@ import { EquipmentCard } from '../components/equipment-card/equipment-card'
 import { Search } from '../components/search/search'
 import { useLazyFetchEquipmentsBySearchTermQuery } from '../store/api/equipment/equipments-api'
 import { selectFavoriteEquipmentsFromLS } from '../store/selectors'
+import { useEffect } from 'react'
 
 export default function SearchPage() {
   const [
@@ -31,10 +32,6 @@ export default function SearchPage() {
         }
       })
     : []
-  
-    useEffect(() => {
-      setPage(1); // Сбрасываем страницу при изменении параметров поиска
-    }, [searchTerm, filters]);
 
   return (
     <Container sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
