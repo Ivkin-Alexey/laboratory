@@ -9,6 +9,7 @@ import type {
 } from '../../../models/equipments'
 import type { TLogin } from '../../../models/users'
 import { api } from '../api'
+const LIST_MAX_SIZE = 40
 
 export const equipmentsApi = api.injectEndpoints({
   endpoints: builder => ({
@@ -35,18 +36,46 @@ export const equipmentsApi = api.injectEndpoints({
           isFavorite: true
         })),
     }),
+    // fetchEquipmentsBySearchTerm: builder.query<IEquipmentListResult, ISearchArg>({
+    //   query: data => {
+    //     const { login, filters = {}, searchTerm, page, previousPage, pageSize} = data
+
+    //     const params = {
+    //       ...(login && { login }),
+    //       ...filters,
+    //       ...(searchTerm && { term: searchTerm }),
+    //       ...(page && { page }),
+    //       ...(pageSize && {pageSize})
+    //     }
+    //     return apiRoutes.get.equipments.search + encodeQueryParams(params)
+    //   },
+
+    //   merge: (currentCache, newItems) => {
+    //     const {page, previousPage} = data
+    //     if(page > previousPage) {
+    //       currentCache.results.push(...newItems.results);
+    //     } else if (page < previousPage) {
+    //       currentCache.results.push(...newItems.results);
+    //     }
+    //   },
+    //   // forceRefetch: ({ currentArg, previousArg }) => {
+    //   //   return currentArg?.page !== previousArg?.page;
+    //   // },
+    //   providesTags: ['EquipmentList'],
+    // }),
     fetchEquipmentsBySearchTerm: builder.query<IEquipmentListResult, ISearchArg>({
       query: data => {
-        const { login, filters = {}, searchTerm, page, pageSize} = data
-
+        const { login, filters = {}, searchTerm, page, pageSize } = data;
+    
         const params = {
           ...(login && { login }),
           ...filters,
           ...(searchTerm && { term: searchTerm }),
           ...(page && { page }),
-          ...(pageSize && {pageSize})
-        }
-        return apiRoutes.get.equipments.search + encodeQueryParams(params)
+          ...(pageSize && { pageSize })
+        };
+    
+        return apiRoutes.get.equipments.search + encodeQueryParams(params);
       },
       // serializeQueryArgs: ({ endpointName }) => {
       //   return endpointName;
@@ -59,6 +88,7 @@ export const equipmentsApi = api.injectEndpoints({
       // },
       providesTags: ['EquipmentList'],
     }),
+    
     fetchFavoriteEquipments: builder.query<IEquipmentItem[], string>({
       query: login => apiRoutes.get.equipments.favorite + login,
       transformResponse: (response: IEquipmentItem[]) => {

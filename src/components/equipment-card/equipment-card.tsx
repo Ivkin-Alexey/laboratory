@@ -23,8 +23,9 @@ export function EquipmentCard(props: TEquipmentCard) {
     isFavorite = false,
     isOperate = false,
     login,
-    isCardMode,
+    isCardMode = false,
     userName,
+    number
   } = props
 
   const navigate = useNavigate()
@@ -49,7 +50,7 @@ export function EquipmentCard(props: TEquipmentCard) {
         style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}
         className="cardActionArea"
       >
-        <CardStatus isVisible={isOperate} text={userName || 'В работе'} />
+        <CardStatus isVisible={true} text={number || 'В работе'} />
         <div className="cardMediaWrapper">
           <CardMedia component="img" image={imgUrl} alt="Изображение карточки" />
         </div>

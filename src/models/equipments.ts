@@ -42,7 +42,7 @@ export interface ISearchArg {
   login?: TLogin
   searchTerm: string
   filters?: IEquipmentFilterState
-  page?: number
+  page: number
   pageSize: number
 }
 
